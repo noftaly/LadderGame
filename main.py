@@ -9,7 +9,7 @@ TODO:
     - [ ] Echelles cassées, murs traversables
     
     - BugFixes :
-    - [ ] Quand le jeu est finit (écran "Le jeu est finit") : Erreur "Index out of range"
+    - [x] Quand le jeu est finit (écran "Le jeu est finit") : Erreur "Index out of range"
     - [x] Quand un squelette arrive sur (dessus) l'emplacement d'un ancien coffre, pris, il ne tombe pas
 """
 """
