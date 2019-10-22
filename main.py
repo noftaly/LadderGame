@@ -10,7 +10,7 @@ TODO:
     
     - BugFixes :
     - [ ] Quand le jeu est finit (écran "Le jeu est finit") : Erreur "Index out of range"
-    - [ ] Quand un squelette arrive sur (dessus) l'emplacement d'un ancien coffre, pris, il ne tombe pas
+    - [x] Quand un squelette arrive sur (dessus) l'emplacement d'un ancien coffre, pris, il ne tombe pas
 """
 """
 DOC:
@@ -18,15 +18,20 @@ DOC:
     [X] = Briques
     [H] = Échelles
     [T] = Trésor
-    [M] = Guerrier
+    [K] = Guerrier
     [S] = Squelette
-
 """
 
 import tkinter, os
 from typing import List, Any
 
 # JUMP_HEIGHT = 3
+VOID = ' '
+BRICK = 'X'
+LADDER = 'H'
+TREASURE = 'T'
+SPAWN_KNIGHT = 'K'
+SPAWN_SKELETON = 'S'
 
 level = 1
 window = tkinter.Tk()
@@ -50,34 +55,40 @@ yPlayer2 = 0
 
 # Functions
 def movement():
-    global xPlayer1, yPlayer1, player, xPlayer2, yPlayer2, player2
+    global xPlayer1, yPlayer1, player, xPlayer2, yPlayer2, player2, cells
 
     # Knight
-    if 'Right' in keys and cells[yPlayer1][xPlayer1+1] != 'X':
+    if 'Right' in keys and cells[yPlayer1][xPlayer1+1] != BRICK:
         xPlayer1 += 1
-    elif 'Left' in keys and cells[yPlayer1][xPlayer1-1] != 'X':
+    elif 'Left' in keys and cells[yPlayer1][xPlayer1-1] != BRICK:
         xPlayer1 -= 1
-    elif 'Up' in keys and cells[yPlayer1-1][xPlayer1] != 'X' and cells[yPlayer1][xPlayer1] == 'H':
+    elif 'Up' in keys and cells[yPlayer1-1][xPlayer1] != BRICK and cells[yPlayer1][xPlayer1] == LADDER:
         yPlayer1 -= 1
-    # elif 'Up' in keys and (cells[yPlayer1+JUMP_HEIGHT][xPlayer1] == ' ' or 'T') and cells[yPlayer1-1][xPlayer1] != ' ':
+    # elif 'Up' in keys and (cells[yPlayer1+JUMP_HEIGHT][xPlayer1] == VOID or TREASURE) and cells[yPlayer1-1][xPlayer1] != VOID:
     #    yPlayer1 -= JUMP_HEIGHT
-    elif 'Down' in keys and cells[yPlayer1+1][xPlayer1] != 'X' and (cells[yPlayer1][xPlayer1] == 'H' or cells[yPlayer1+1][xPlayer1] == 'H'):
+    elif 'Down' in keys and cells[yPlayer1+1][xPlayer1] != BRICK and (cells[yPlayer1][xPlayer1] == LADDER or cells[yPlayer1+1][xPlayer1] == LADDER):
         yPlayer1 += 1
 
     # Skeleton
-    if 'd' in keys and cells[yPlayer2][xPlayer2+1] != 'X':
+    if 'd' in keys and cells[yPlayer2][xPlayer2+1] != BRICK:
         xPlayer2 += 1
-    elif 'q' in keys and cells[yPlayer2][xPlayer2-1] != 'X':
+    elif 'q' in keys and cells[yPlayer2][xPlayer2-1] != BRICK:
         xPlayer2 -= 1
-    elif 'z' in keys and cells[yPlayer2-1][xPlayer2] != 'X' and cells[yPlayer2][xPlayer2] == 'H':
+    elif 'z' in keys and cells[yPlayer2-1][xPlayer2] != BRICK and cells[yPlayer2][xPlayer2] == LADDER:
         yPlayer2 -= 1
-    elif 's' in keys and cells[yPlayer2+1][xPlayer2] != 'X' and (cells[yPlayer2][xPlayer2] == 'H' or cells[yPlayer2+1][xPlayer2] == 'H'):
+    elif 's' in keys and cells[yPlayer2+1][xPlayer2] != BRICK and (cells[yPlayer2][xPlayer2] == LADDER or cells[yPlayer2+1][xPlayer2] == LADDER):
         yPlayer2 += 1
 
     # Check chests
     for i in range(len(chests)):
         if (xPlayer1 == chestsX[i] and yPlayer1 == chestsY[i]) or (xPlayer1 == chestsX[i] and (yPlayer1+1) == chestsY[i]):
             canvas.delete(chests[i])
+
+            # Set the chest position to VOID
+            s = list(cells[yPlayer1])
+            s[xPlayer1] = VOID
+            cells[yPlayer1] = ''.join(s)
+
             del(chests[i])
             del(chestsX[i])
             del(chestsY[i])
@@ -103,9 +114,9 @@ def movement():
 def gravity():
     global xPlayer1, yPlayer1, player, xPlayer2, yPlayer2, player2
 
-    if cells[yPlayer1+1][xPlayer1] in [' ', 'S', 'T', 'K']:
+    if cells[yPlayer1+1][xPlayer1] in [VOID, SPAWN_SKELETON, TREASURE, SPAWN_KNIGHT]:
         yPlayer1 += 1
-    if cells[yPlayer2+1][xPlayer2] in [' ', 'S', 'K']:
+    if cells[yPlayer2+1][xPlayer2] in [VOID, SPAWN_SKELETON, SPAWN_KNIGHT]:
         yPlayer2 += 1
 
     canvas.coords(player, xPlayer1*32+16, yPlayer1*32+16)
@@ -125,35 +136,35 @@ def create_level():
 
     canvas.delete('all')
 
-    exists = os.path.isfile('Niveau ' + str(level) + '.txt')
+    exists = os.path.isfile('Levels/level_' + str(level) + '.txt')
     if exists:
-        file = open('Niveau ' + str(level) + '.txt')
+        file = open('Levels/level_' + str(level) + '.txt')
         level += 1
-        for i in file:
-            cells.append(i)
+        for char in file:
+            cells.append(str(char))
         file.close()
 
         # Display images
         for i in range(21):
             for j in range(21):
                 # Brick
-                if cells[i][j] == 'X':
+                if cells[i][j] == BRICK:
                     canvas.create_image(j*32+16, i*32+16, image=brick)
                 # Ladder
-                elif cells[i][j] == 'H':
+                elif cells[i][j] == LADDER:
                     canvas.create_image(j*32+16, i*32+16, image=ladder)
                 # Treasure
-                elif cells[i][j] == 'T':
+                elif cells[i][j] == TREASURE:
                     chests.append(canvas.create_image(j*32+16, i*32+16, image=treasure))
                     chestsX.append(j)
                     chestsY.append(i)
                 # Knight
-                elif cells[i][j] == 'K':
+                elif cells[i][j] == SPAWN_KNIGHT:
                     xPlayer1 = j
                     yPlayer1 = i
                     player = canvas.create_image(xPlayer1*32+16, yPlayer1*32+16, image=knight)
                 # Skeleton
-                elif cells[i][j] == 'S':
+                elif cells[i][j] == SPAWN_SKELETON:
                     xPlayer2 = j
                     yPlayer2 = i
                     player2 = canvas.create_image(xPlayer2*32+16, xPlayer2*32+16, image=skeleton)
