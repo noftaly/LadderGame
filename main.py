@@ -1,169 +1,184 @@
 # Créé par Elliot, le 02/07/2018 en Python 3.2
 """
-TODO LIST:
-    [V] Plusieurs niveaux
-    [ ] Jump
-    [V] Bug quand on atterit sur l'emplacement d'un coffre qui a déjà été pris : on est en l'air
-    [V] Bug "index out of range" avec les coffres
-    [ ] Téléporteur
-    [ ] Ecran de départ
-    [ ] Quand on arrive sur un bord de la map, on arrive de l'autre côté
-    [ ] Echelles cassées, murs traversables
+TODO:
+    - Idées :
+    - [ ] Jump
+    - [ ] Téléporteur
+    - [ ] Ecran de départ
+    - [ ] Quand on arrive sur un bord de la map, on arrive de l'autre côté
+    - [ ] Echelles cassées, murs traversables
+    
+    - BugFixes :
+    - [ ] Quand le jeu est finit (écran "Le jeu est finit") : Erreur "Index out of range"
+    - [ ] Quand un squelette arrive sur (dessus) l'emplacement d'un ancien coffre, pris, il ne tombe pas
+"""
+"""
+DOC:
+    [ ] = Vide
+    [X] = Briques
+    [H] = Échelles
+    [T] = Trésor
+    [M] = Guerrier
+    [S] = Squelette
+
 """
 
 import tkinter, os
-
-# VARIABLES
 from typing import List, Any
 
-JUMP_HEIGHT = 3
+# JUMP_HEIGHT = 3
 
-niveau = 1
-fenetre = tkinter.Tk()  # ==> Met la réf. de la fenêtre dans "fenetre"
-canvas = tkinter.Canvas(fenetre, width=672, height=672)              # ==> Met la réf. du canvas dans "canvas"
-personnage = tkinter.PhotoImage(file='Ressources/Personnage.gif')  # ==> Stocke l'image du perso dans "personnage"
-brique = tkinter.PhotoImage(file='Ressources/Brique.gif')          # ==> Stocke l'image de la brique dans "brique"
-echelle = tkinter.PhotoImage(file='Ressources/Echelle.gif')        # ==> Stocke l'image des échelles dans "echelle"
-squelette = tkinter.PhotoImage(file='Ressources/Squelette.gif')    # ==> Stocke l'image du squelette dans "squelette"
-tresor = tkinter.PhotoImage(file='Ressources/Tresor.gif')          # ==> Stocke l'image des tresors dans "tresor"
+level = 1
+window = tkinter.Tk()
+window.title('LadderGame')
+canvas = tkinter.Canvas(window, width=672, height=672)
+knight = tkinter.PhotoImage(file='Ressources/Knight.gif')
+brick = tkinter.PhotoImage(file='Ressources/Brick.gif')
+ladder = tkinter.PhotoImage(file='Ressources/Ladder.gif')
+skeleton = tkinter.PhotoImage(file='Ressources/Skeleton.gif')
+treasure = tkinter.PhotoImage(file='Ressources/Treasure.gif')
 
-cases = []
-touches: List[Any] = []
-coffres = []
-coffresX = []
-coffresY = []
+cells = []
+keys: List[Any] = []
+chests = []
+chestsX = []
+chestsY = []
+xPlayer1 = 0
+yPlayer1 = 0
+xPlayer2 = 0
+yPlayer2 = 0
 
+# Functions
+def movement():
+    global xPlayer1, yPlayer1, player, xPlayer2, yPlayer2, player2
 
-# CODE
+    # Knight
+    if 'Right' in keys and cells[yPlayer1][xPlayer1+1] != 'X':
+        xPlayer1 += 1
+    elif 'Left' in keys and cells[yPlayer1][xPlayer1-1] != 'X':
+        xPlayer1 -= 1
+    elif 'Up' in keys and cells[yPlayer1-1][xPlayer1] != 'X' and cells[yPlayer1][xPlayer1] == 'H':
+        yPlayer1 -= 1
+    # elif 'Up' in keys and (cells[yPlayer1+JUMP_HEIGHT][xPlayer1] == ' ' or 'T') and cells[yPlayer1-1][xPlayer1] != ' ':
+    #    yPlayer1 -= JUMP_HEIGHT
+    elif 'Down' in keys and cells[yPlayer1+1][xPlayer1] != 'X' and (cells[yPlayer1][xPlayer1] == 'H' or cells[yPlayer1+1][xPlayer1] == 'H'):
+        yPlayer1 += 1
 
-# Fonctions
-def movement():  # ==> Déplacement du personnage
-    global xJoueur1, yJoueur1, joueur, xJoueur2, yJoueur2, joueur2
+    # Skeleton
+    if 'd' in keys and cells[yPlayer2][xPlayer2+1] != 'X':
+        xPlayer2 += 1
+    elif 'q' in keys and cells[yPlayer2][xPlayer2-1] != 'X':
+        xPlayer2 -= 1
+    elif 'z' in keys and cells[yPlayer2-1][xPlayer2] != 'X' and cells[yPlayer2][xPlayer2] == 'H':
+        yPlayer2 -= 1
+    elif 's' in keys and cells[yPlayer2+1][xPlayer2] != 'X' and (cells[yPlayer2][xPlayer2] == 'H' or cells[yPlayer2+1][xPlayer2] == 'H'):
+        yPlayer2 += 1
 
-    # Guerrier
-    if 'Right' in touches and cases[yJoueur1][xJoueur1+1] != 'X':
-        xJoueur1 += 1
-    elif 'Left' in touches and cases[yJoueur1][xJoueur1-1] != 'X':
-        xJoueur1 -= 1
-    elif 'Up' in touches and cases[yJoueur1-1][xJoueur1] != 'X' and cases[yJoueur1][xJoueur1] == 'H':
-        yJoueur1 -= 1
-    #elif 'Up' in touches and (cases[yJoueur1+JUMP_HEIGHT][xJoueur1] == ' ' or 'T') and cases[yJoueur1-1][xJoueur1] != ' ':
-    #    yJoueur1 -= JUMP_HEIGHT
-    elif 'Down' in touches and cases[yJoueur1+1][xJoueur1] != 'X' and (cases[yJoueur1][xJoueur1] == 'H' or cases[yJoueur1+1][xJoueur1] == 'H'):
-        yJoueur1 += 1
-
-    # Squelette
-    if 'd' in touches and cases[yJoueur2][xJoueur2+1] != 'X':
-        xJoueur2 += 1
-    elif 'q' in touches and cases[yJoueur2][xJoueur2-1] != 'X':
-        xJoueur2 -= 1
-    elif 'z' in touches and cases[yJoueur2-1][xJoueur2] != 'X' and cases[yJoueur2][xJoueur2] == 'H':
-        yJoueur2 -= 1
-    elif 's' in touches and cases[yJoueur2+1][xJoueur2] != 'X' and (cases[yJoueur2][xJoueur2] == 'H' or cases[yJoueur2+1][xJoueur2] == 'H'):
-        yJoueur2 += 1
-
-    # Vérification des coffres
-    for i in range(len(coffres)):
-        if (xJoueur1 == coffresX[i] and yJoueur1 == coffresY[i]) or (xJoueur1 == coffresX[i] and (yJoueur1+1) == coffresY[i]):
-            canvas.delete(coffres[i])
-            del(coffres[i])
-            del(coffresX[i])
-            del(coffresY[i])
-            if len(coffres) == 0:
+    # Check chests
+    for i in range(len(chests)):
+        if (xPlayer1 == chestsX[i] and yPlayer1 == chestsY[i]) or (xPlayer1 == chestsX[i] and (yPlayer1+1) == chestsY[i]):
+            canvas.delete(chests[i])
+            del(chests[i])
+            del(chestsX[i])
+            del(chestsY[i])
+            if len(chests) == 0:
                 canvas.create_rectangle(0, 0, 672, 672, fill='white')
-                canvas.create_text(350, 300, text='Victoire', fill='#444fff444', font=('Arial', 70))
-                fenetre.after(3000, creerNiveau)
+                canvas.create_text(350, 300, text='Bravo !', fill='#66BB66', font=('Arial', 70))
+                window.after(1000, create_level)
             break
 
-    # Vérification des collisions entre squelette/guerrier
-    if xJoueur1 == xJoueur2 and yJoueur1 == yJoueur2:
+    # Check collisions between skeleton and knight
+    if xPlayer1 == xPlayer2 and yPlayer1 == yPlayer2:
         canvas.create_rectangle(0, 0, 672, 672, fill='white')
-        canvas.create_text(325, 300, text='Game Over', fill='red', font=('Arial', 70))
+        canvas.create_text(325, 300, text='Oh non :(', fill='#CC6666', font=('Arial', 70))
+        canvas.create_text(330, 500, text='Le squellette à gagné !', fill='#CC6666', font=('Arial', 40))
         return
 
-    canvas.coords(joueur, xJoueur1*32+16, yJoueur1*32+16)
-    canvas.coords(joueur2, xJoueur2*32+16, yJoueur2*32+16)
+    canvas.coords(player, xPlayer1*32+16, yPlayer1*32+16)
+    canvas.coords(player2, xPlayer2*32+16, yPlayer2*32+16)
 
-    fenetre.after(115, movement)
-
-
-def gravite():
-    global xJoueur1, yJoueur1, joueur, xJoueur2, yJoueur2, joueur2
-
-    if cases[yJoueur1+1][xJoueur1] in [' ', 'S', 'T', 'M']:
-        yJoueur1 += 1
-    if cases[yJoueur2+1][xJoueur2] in [' ', 'S', 'M']:
-        yJoueur2 += 1
-
-    canvas.coords(joueur, xJoueur1*32+16, yJoueur1*32+16)
-    canvas.coords(joueur2, xJoueur2*32+16, yJoueur2*32+16)
-    fenetre.after(115, gravite)
+    window.after(115, movement)
 
 
-def creerNiveau():
-    global cases, canvas, coffres, coffresX, coffresY, xJoueur1, yJoueur1, xJoueur2, yJoueur2, joueur, joueur2, fichier2, niveau
-    while len(cases) > 0:
-        del(cases[0])
-    while len(coffres) > 0:
-        del(coffres[0])
-    while len(coffresX) > 0:
-        del(coffresX[0])
-    while len(coffresY) > 0:
-        del(coffresY[0])
+def gravity():
+    global xPlayer1, yPlayer1, player, xPlayer2, yPlayer2, player2
+
+    if cells[yPlayer1+1][xPlayer1] in [' ', 'S', 'T', 'K']:
+        yPlayer1 += 1
+    if cells[yPlayer2+1][xPlayer2] in [' ', 'S', 'K']:
+        yPlayer2 += 1
+
+    canvas.coords(player, xPlayer1*32+16, yPlayer1*32+16)
+    canvas.coords(player2, xPlayer2*32+16, yPlayer2*32+16)
+    window.after(115, gravity)
+
+
+def create_level():
+    global cells, canvas, chests, chestsX, chestsY, xPlayer1, yPlayer1, xPlayer2, yPlayer2, player, player2, level
+
+    while len(cells) > 0:
+        del(cells[0])
+    while len(chests) > 0:
+        del(chests[0])
+        del(chestsX[0])
+        del(chestsY[0])
 
     canvas.delete('all')
 
-    exists = os.path.isfile('Niveau ' + str(niveau) + '.txt')
+    exists = os.path.isfile('Niveau ' + str(level) + '.txt')
     if exists:
-        fichier = open('Niveau ' + str(niveau) + '.txt')
-        niveau += 1
-        for i in fichier:
-            cases.append(i)
-        fichier.close()
+        file = open('Niveau ' + str(level) + '.txt')
+        level += 1
+        for i in file:
+            cells.append(i)
+        file.close()
 
+        # Display images
         for i in range(21):
             for j in range(21):
-                if cases[i][j] == 'X':
-                    canvas.create_image(j*32+16, i*32+16, image=brique) # ==> Affichage des briques
-                elif cases[i][j] == 'H':
-                    canvas.create_image(j*32+16, i*32+16, image=echelle) # ==> Affichage des échelles
-                elif cases[i][j] == 'T':
-                    coffres.append(canvas.create_image(j*32+16, i*32+16, image=tresor)) # ==> Affichage des tresors
-                    coffresX.append(j)
-                    coffresY.append(i)
-
-        for i in range(21):
-            for j in range(21):
-                if cases[i][j] == 'M':
-                    xJoueur1 = j
-                    yJoueur1 = i
-                    joueur = canvas.create_image(xJoueur1*32+16, yJoueur1*32+16, image=personnage) # ==> Ajoute l'image au canvas
-                elif cases[i][j] == 'S':
-                    xJoueur2 = j
-                    yJoueur2 = i
-                    joueur2 = canvas.create_image(xJoueur2*32+16, xJoueur2*32+16, image=squelette) # ==> Affichage des squelettes
+                # Brick
+                if cells[i][j] == 'X':
+                    canvas.create_image(j*32+16, i*32+16, image=brick)
+                # Ladder
+                elif cells[i][j] == 'H':
+                    canvas.create_image(j*32+16, i*32+16, image=ladder)
+                # Treasure
+                elif cells[i][j] == 'T':
+                    chests.append(canvas.create_image(j*32+16, i*32+16, image=treasure))
+                    chestsX.append(j)
+                    chestsY.append(i)
+                # Knight
+                elif cells[i][j] == 'K':
+                    xPlayer1 = j
+                    yPlayer1 = i
+                    player = canvas.create_image(xPlayer1*32+16, yPlayer1*32+16, image=knight)
+                # Skeleton
+                elif cells[i][j] == 'S':
+                    xPlayer2 = j
+                    yPlayer2 = i
+                    player2 = canvas.create_image(xPlayer2*32+16, xPlayer2*32+16, image=skeleton)
     else:
         canvas.create_rectangle(0, 0, 672, 672, fill='white')
-        canvas.create_text(350, 300, text='Le jeu est fini :)', fill='#444fff444', font=('Arial', 70))
+        canvas.create_text(350, 285, text='Le jeu est fini :)', fill='#66BB66', font=('Arial', 70))
 
 
-def enfoncee(evt):
-    if evt.keysym not in touches:
-        touches.append(evt.keysym)
+def key_pressed(evt):
+    if evt.keysym not in keys:
+        keys.append(evt.keysym)
 
 
-def relachee(evt):
-    if evt.keysym in touches:
-        touches.remove(evt.keysym)
+def key_released(evt):
+    if evt.keysym in keys:
+        keys.remove(evt.keysym)
 
 
 # Main
-canvas.bind('<KeyPress>', enfoncee)
-canvas.bind('<KeyRelease>', relachee)
+canvas.bind('<KeyPress>', key_pressed)
+canvas.bind('<KeyRelease>', key_released)
 canvas.focus_set()
 
-creerNiveau()
+create_level()
 canvas.pack()
 movement()
-gravite()
-fenetre.mainloop()
+gravity()
+window.mainloop()
