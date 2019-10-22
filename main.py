@@ -171,6 +171,7 @@ def create_level():
     else:
         canvas.create_rectangle(0, 0, 672, 672, fill='white')
         canvas.create_text(350, 285, text='Le jeu est fini :)', fill='#66BB66', font=('Arial', 70))
+        exit()
 
 
 def key_pressed(evt):
