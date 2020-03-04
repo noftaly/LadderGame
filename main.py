@@ -1,4 +1,11 @@
 # Créé par Elliot, le 02/07/2018 en Python 3.2
+import tkinter
+import os
+from typing import List, Any
+
+from player import Player
+from tile import Tile
+
 """
 TODO:
     - Idées :
@@ -7,23 +14,7 @@ TODO:
     - [ ] Ecran de départ
     - [ ] Quand on arrive sur un bord de la map, on arrive de l'autre côté
     - [ ] Echelles cassées, murs traversables
-    
-    - BugFixes :
-    - [x] Quand le jeu est finit (écran "Le jeu est finit") : Erreur "Index out of range"
-    - [x] Quand un squelette arrive sur (dessus) l'emplacement d'un ancien coffre, pris, il ne tombe pas
 """
-"""
-DOC:
-    [ ] = Vide
-    [X] = Briques
-    [H] = Échelles
-    [T] = Trésor
-    [K] = Guerrier
-    [S] = Squelette
-"""
-
-import tkinter, os
-from typing import List, Any
 
 # JUMP_HEIGHT = 3
 VOID = ' '
@@ -34,105 +25,98 @@ SPAWN_KNIGHT = 'K'
 SPAWN_SKELETON = 'S'
 
 level = 1
-window = tkinter.Tk()
-window.title('LadderGame')
-canvas = tkinter.Canvas(window, width=672, height=672)
-knight = tkinter.PhotoImage(file='Ressources/Knight.gif')
-brick = tkinter.PhotoImage(file='Ressources/Brick.gif')
-ladder = tkinter.PhotoImage(file='Ressources/Ladder.gif')
-skeleton = tkinter.PhotoImage(file='Ressources/Skeleton.gif')
-treasure = tkinter.PhotoImage(file='Ressources/Treasure.gif')
-
+finished = False
 cells = []
 keys: List[Any] = []
 chests = []
-chestsX = []
-chestsY = []
-xPlayer1 = 0
-yPlayer1 = 0
-xPlayer2 = 0
-yPlayer2 = 0
+
+window = tkinter.Tk()
+window.title('LadderGame')
+
+canvas = tkinter.Canvas(window, width=672, height=672)
+knight_image = tkinter.PhotoImage(file='Ressources/Knight.gif')
+brick_image = tkinter.PhotoImage(file='Ressources/Brick.gif')
+ladder_image = tkinter.PhotoImage(file='Ressources/Ladder.gif')
+skeleton_image = tkinter.PhotoImage(file='Ressources/Skeleton.gif')
+treasure_image = tkinter.PhotoImage(file='Ressources/Treasure.gif')
+
+knight = None
+skeleton = None
+
 
 # Functions
-def movement():
-    global xPlayer1, yPlayer1, player, xPlayer2, yPlayer2, player2, cells
-
-    # Knight
-    if 'Right' in keys and cells[yPlayer1][xPlayer1+1] != BRICK:
-        xPlayer1 += 1
-    elif 'Left' in keys and cells[yPlayer1][xPlayer1-1] != BRICK:
-        xPlayer1 -= 1
-    elif 'Up' in keys and cells[yPlayer1-1][xPlayer1] != BRICK and cells[yPlayer1][xPlayer1] == LADDER:
-        yPlayer1 -= 1
-    # elif 'Up' in keys and (cells[yPlayer1+JUMP_HEIGHT][xPlayer1] == VOID or TREASURE) and cells[yPlayer1-1][xPlayer1] != VOID:
-    #    yPlayer1 -= JUMP_HEIGHT
-    elif 'Down' in keys and cells[yPlayer1+1][xPlayer1] != BRICK and (cells[yPlayer1][xPlayer1] == LADDER or cells[yPlayer1+1][xPlayer1] == LADDER):
-        yPlayer1 += 1
-
-    # Skeleton
-    if 'd' in keys and cells[yPlayer2][xPlayer2+1] != BRICK:
-        xPlayer2 += 1
-    elif 'q' in keys and cells[yPlayer2][xPlayer2-1] != BRICK:
-        xPlayer2 -= 1
-    elif 'z' in keys and cells[yPlayer2-1][xPlayer2] != BRICK and cells[yPlayer2][xPlayer2] == LADDER:
-        yPlayer2 -= 1
-    elif 's' in keys and cells[yPlayer2+1][xPlayer2] != BRICK and (cells[yPlayer2][xPlayer2] == LADDER or cells[yPlayer2+1][xPlayer2] == LADDER):
-        yPlayer2 += 1
-
-    # Check chests
-    for i in range(len(chests)):
-        if (xPlayer1 == chestsX[i] and yPlayer1 == chestsY[i]) or (xPlayer1 == chestsX[i] and (yPlayer1+1) == chestsY[i]):
-            canvas.delete(chests[i])
-
-            # Set the chest position to VOID
-            s = list(cells[yPlayer1])
-            s[xPlayer1] = VOID
-            cells[yPlayer1] = ''.join(s)
-
-            del(chests[i])
-            del(chestsX[i])
-            del(chestsY[i])
-            if len(chests) == 0:
-                canvas.create_rectangle(0, 0, 672, 672, fill='white')
-                canvas.create_text(350, 300, text='Bravo !', fill='#66BB66', font=('Arial', 70))
-                window.after(1000, create_level)
-            break
-
-    # Check collisions between skeleton and knight
-    if xPlayer1 == xPlayer2 and yPlayer1 == yPlayer2:
+def game_end(end_type):
+    if end_type == 0:
+        canvas.create_rectangle(0, 0, 672, 672, fill='white')
+        canvas.create_text(350, 300, text='Le chavalier à gagné !', fill='#66BB66', font=('Arial', 70))
+        window.after(2000, create_level)
+    elif end_type == 1:
         canvas.create_rectangle(0, 0, 672, 672, fill='white')
         canvas.create_text(325, 300, text='Oh non :(', fill='#CC6666', font=('Arial', 70))
         canvas.create_text(330, 500, text='Le squellette à gagné !', fill='#CC6666', font=('Arial', 40))
+        window.after(2000, lambda: exit(0))
+    elif end_type == 2:
+        canvas.create_rectangle(0, 0, 672, 672, fill='white')
+        canvas.create_text(350, 285, text='Le jeu est fini :)', fill='#66BB66', font=('Arial', 70))
+        window.after(2000, lambda: exit(0))
+
+
+def movement():
+    global knight, skeleton, cells, finished
+
+    knight.move(cells, keys, BRICK, LADDER)
+    skeleton.move(cells, keys, BRICK, LADDER)
+
+    # Check chests
+    for chest in chests:
+        if (knight.x == chest.x and knight.y == chest.y) or (knight.x == chest.x and (knight.y+1) == chest.y):
+            canvas.delete(chest.id)
+
+            # Set the chest position to VOID
+            s = list(cells[knight.y])
+            s[knight.x] = VOID
+            cells[knight.y] = ''.join(s)
+
+            chests.remove(chest)
+            if len(chests) == 0:
+                game_end(0)
+                finished = True
+
+    # Check collisions between skeleton and knight
+    if knight.x == skeleton.x and knight.y == skeleton.y and not finished:
+        game_end(1)
+        finished = True
+
+    if finished:
         return
 
-    canvas.coords(player, xPlayer1*32+16, yPlayer1*32+16)
-    canvas.coords(player2, xPlayer2*32+16, yPlayer2*32+16)
+    canvas.coords(knight.id, knight.canvas_x(), knight.canvas_y())
+    canvas.coords(skeleton.id, skeleton.canvas_x(), skeleton.canvas_y())
 
     window.after(115, movement)
 
 
 def gravity():
-    global xPlayer1, yPlayer1, player, xPlayer2, yPlayer2, player2
+    global knight, skeleton
 
-    if cells[yPlayer1+1][xPlayer1] in [VOID, SPAWN_SKELETON, TREASURE, SPAWN_KNIGHT]:
-        yPlayer1 += 1
-    if cells[yPlayer2+1][xPlayer2] in [VOID, SPAWN_SKELETON, SPAWN_KNIGHT]:
-        yPlayer2 += 1
+    if cells[knight.y+1][knight.x] in [VOID, SPAWN_SKELETON, TREASURE, SPAWN_KNIGHT]:
+        knight.y += 1
+    if cells[skeleton.y+1][skeleton.x] in [VOID, SPAWN_SKELETON, SPAWN_KNIGHT]:
+        skeleton.y += 1
 
-    canvas.coords(player, xPlayer1*32+16, yPlayer1*32+16)
-    canvas.coords(player2, xPlayer2*32+16, yPlayer2*32+16)
+    if finished:
+        return
+
+    canvas.coords(knight.id, knight.canvas_x(), knight.canvas_y())
+    canvas.coords(skeleton.id, skeleton.canvas_x(), skeleton.canvas_y())
     window.after(115, gravity)
 
 
 def create_level():
-    global cells, canvas, chests, chestsX, chestsY, xPlayer1, yPlayer1, xPlayer2, yPlayer2, player, player2, level
+    global cells, canvas, chests, knight, skeleton, level, finished
 
-    while len(cells) > 0:
-        del(cells[0])
-    while len(chests) > 0:
-        del(chests[0])
-        del(chestsX[0])
-        del(chestsY[0])
+    cells = []
+    chests = []
 
     canvas.delete('all')
 
@@ -147,31 +131,29 @@ def create_level():
         # Display images
         for i in range(21):
             for j in range(21):
-                # Brick
                 if cells[i][j] == BRICK:
-                    canvas.create_image(j*32+16, i*32+16, image=brick)
-                # Ladder
+                    Tile(canvas, brick_image, j, i)
+
                 elif cells[i][j] == LADDER:
-                    canvas.create_image(j*32+16, i*32+16, image=ladder)
-                # Treasure
+                    Tile(canvas, ladder_image, j, i)
+
                 elif cells[i][j] == TREASURE:
-                    chests.append(canvas.create_image(j*32+16, i*32+16, image=treasure))
-                    chestsX.append(j)
-                    chestsY.append(i)
-                # Knight
+                    chest = Tile(canvas, treasure_image, j, i)
+                    chests.append(chest)
+
                 elif cells[i][j] == SPAWN_KNIGHT:
-                    xPlayer1 = j
-                    yPlayer1 = i
-                    player = canvas.create_image(xPlayer1*32+16, yPlayer1*32+16, image=knight)
-                # Skeleton
+                    knight = Player('knight', canvas, knight_image, j, i)
+
                 elif cells[i][j] == SPAWN_SKELETON:
-                    xPlayer2 = j
-                    yPlayer2 = i
-                    player2 = canvas.create_image(xPlayer2*32+16, xPlayer2*32+16, image=skeleton)
+                    skeleton = Player('skeleton', canvas, skeleton_image, j, i)
+
+        # Start movement loop
+        finished = False
+        movement()
+        gravity()
     else:
-        canvas.create_rectangle(0, 0, 672, 672, fill='white')
-        canvas.create_text(350, 285, text='Le jeu est fini :)', fill='#66BB66', font=('Arial', 70))
-        exit()
+        game_end(2)
+        finished = True
 
 
 def key_pressed(evt):
@@ -191,6 +173,5 @@ canvas.focus_set()
 
 create_level()
 canvas.pack()
-movement()
-gravity()
+
 window.mainloop()
