@@ -1,4 +1,4 @@
-from tile import Tile
+from Sources.tile import Tile
 
 
 class Player (Tile):

@@ -3,8 +3,8 @@ import tkinter
 import os
 from typing import List, Any
 
-from player import Player
-from tile import Tile
+from Sources.player import Player
+from Sources.tile import Tile
 
 """
 TODO:
