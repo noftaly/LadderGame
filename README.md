@@ -10,10 +10,10 @@ It is a multiplayer game: the knight is control with arrows keys, and the skelet
 ## Screenshots
 
 First level:
-[First level](Static/level_1.png)
+![First level](Static/level_1.png)
 
 Second level:
-[Second level](Static/level_2.png)
+![Second level](Static/level_2.png)
 
 Third level:
-[Third level](Static/level_3.png) The third level is harder than it seems because you cannot jump!
+![Third level](Static/level_3.png) The third level is harder than it seems because you cannot jump!
