@@ -59,3 +59,6 @@ class Tile:
 
     def canvas_y(self):
         return self._y * 32 + 16
+
+    def isType(self, block):
+        return self._tile_type is block

@@ -82,11 +82,11 @@ def movement():
 def gravity():
     global knight, skeleton
 
-    if not cells[knight.y+1][knight.x].solid and cells[knight.y+1][knight.x].tile_type != Blocks.LADDER:
+    if not cells[knight.y+1][knight.x].solid and not cells[knight.y+1][knight.x].isType(Blocks.LADDER):
         knight.y += 1
     if not cells[skeleton.y+1][skeleton.x].solid                             \
-            and cells[skeleton.y+1][skeleton.x].tile_type != Blocks.TREASURE \
-            and cells[skeleton.y+1][skeleton.x].tile_type != Blocks.LADDER:
+            and not cells[skeleton.y+1][skeleton.x].isType(Blocks.TREASURE)  \
+            and not cells[skeleton.y+1][skeleton.x].isType(Blocks.LADDER):
         skeleton.y += 1
 
     if finished:
