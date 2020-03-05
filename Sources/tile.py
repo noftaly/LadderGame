@@ -1,10 +1,26 @@
+from Sources.blocks import Blocks
+from tkinter import PhotoImage
+
+images = {
+    Blocks.BRICK: PhotoImage(file='Ressources/BRICK.gif'),
+    Blocks.LADDER: PhotoImage(file='Ressources/LADDER.gif'),
+    Blocks.TREASURE: PhotoImage(file='Ressources/TREASURE.gif'),
+    Blocks.SPAWN_KNIGHT: PhotoImage(file='Ressources/Knight.gif'),
+    Blocks.SPAWN_SKELETON: PhotoImage(file='Ressources/Skeleton.gif'),
+}
+
+
 class Tile:
-    def __init__(self, canvas, image, coords, solid, jumpable):
+    def __init__(self, canvas, tile_type, coords, solid, jumpable):
         self._x = coords[0]
         self._y = coords[1]
+        self._tile_type = tile_type
         self._solid = solid
         self._jumpable = jumpable
-        self._id = canvas.create_image(self.canvas_x(), self.canvas_y(), image=image)
+        if tile_type != Blocks.VOID:
+            self._id = canvas.create_image(self.canvas_x(), self.canvas_y(), image=images[tile_type])
+        else:
+            self._id = None
 
     @property
     def x(self):
@@ -15,8 +31,8 @@ class Tile:
         return self._y
 
     @property
-    def id(self):
-        return self._id
+    def tile_type(self):
+        return self._tile_type
 
     @property
     def solid(self):
@@ -25,6 +41,10 @@ class Tile:
     @property
     def jumpable(self):
         return self._jumpable
+
+    @property
+    def id(self):
+        return self._id
 
     @x.setter
     def x(self, x):

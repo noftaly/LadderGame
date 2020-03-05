@@ -3,8 +3,11 @@ import tkinter
 import os
 from typing import List, Any
 
+window = tkinter.Tk()
+
 from Sources.player import Player
 from Sources.tile import Tile
+from Sources.blocks import Blocks
 
 """
 TODO:
@@ -16,29 +19,15 @@ TODO:
     - [ ] Echelles cassées, murs traversables
 """
 
-JUMP_HEIGHT = 3
-VOID = ' '
-BRICK = 'X'
-LADDER = 'H'
-TREASURE = 'T'
-SPAWN_KNIGHT = 'K'
-SPAWN_SKELETON = 'S'
-
 level = 1
 finished = False
 cells = []
 keys: List[Any] = []
 chests = []
 
-window = tkinter.Tk()
-window.title('LadderGame')
+window.title('LADDERGame')
 
 canvas = tkinter.Canvas(window, width=672, height=672)
-knight_image = tkinter.PhotoImage(file='Ressources/Knight.gif')
-brick_image = tkinter.PhotoImage(file='Ressources/Brick.gif')
-ladder_image = tkinter.PhotoImage(file='Ressources/Ladder.gif')
-skeleton_image = tkinter.PhotoImage(file='Ressources/Skeleton.gif')
-treasure_image = tkinter.PhotoImage(file='Ressources/Treasure.gif')
 
 knight = None
 skeleton = None
@@ -71,9 +60,6 @@ def movement():
         if (knight.x == chest.x and knight.y == chest.y) or (knight.x == chest.x and (knight.y+1) == chest.y):
             canvas.delete(chest.id)
 
-            # Set the chest position to VOID
-            cells[knight.y][knight.x] = VOID
-
             chests.remove(chest)
             if len(chests) == 0:
                 game_end(0)
@@ -96,9 +82,11 @@ def movement():
 def gravity():
     global knight, skeleton
 
-    if cells[knight.y+1][knight.x] in [VOID, SPAWN_SKELETON, TREASURE, SPAWN_KNIGHT]:
+    if not cells[knight.y+1][knight.x].solid and cells[knight.y+1][knight.x].tile_type != Blocks.LADDER:
         knight.y += 1
-    if cells[skeleton.y+1][skeleton.x] in [VOID, SPAWN_SKELETON, SPAWN_KNIGHT]:
+    if not cells[skeleton.y+1][skeleton.x].solid                             \
+            and cells[skeleton.y+1][skeleton.x].tile_type != Blocks.TREASURE \
+            and cells[skeleton.y+1][skeleton.x].tile_type != Blocks.LADDER:
         skeleton.y += 1
 
     if finished:
@@ -135,21 +123,26 @@ def create_level():
         # Display images
         for i in range(21):
             for j in range(21):
-                if cells[i][j] == BRICK:
-                    Tile(canvas, brick_image, (j, i), True, True)
+                if cells[i][j] == Blocks.BRICK.value:
+                    cells[i][j] = Tile(canvas, Blocks.BRICK, (j, i), True, True)
 
-                elif cells[i][j] == LADDER:
-                    Tile(canvas, ladder_image, (j, i), False, True)
+                elif cells[i][j] == Blocks.LADDER.value:
+                    cells[i][j] = Tile(canvas, Blocks.LADDER, (j, i), False, True)
 
-                elif cells[i][j] == TREASURE:
-                    chest = Tile(canvas, treasure_image, (j, i), False, True)
-                    chests.append(chest)
+                elif cells[i][j] == Blocks.TREASURE.value:
+                    cells[i][j] = Tile(canvas, Blocks.TREASURE, (j, i), False, True)
+                    chests.append(cells[i][j])
 
-                elif cells[i][j] == SPAWN_KNIGHT:
-                    knight = Player('knight', canvas, knight_image, (j, i), False, False)
+                elif cells[i][j] == Blocks.VOID.value:
+                    cells[i][j] = Tile(canvas, Blocks.VOID, (j, i), False, False)
 
-                elif cells[i][j] == SPAWN_SKELETON:
-                    skeleton = Player('skeleton', canvas, skeleton_image, (j, i), False, False)
+                elif cells[i][j] == Blocks.SPAWN_KNIGHT.value:
+                    cells[i][j] = Tile(canvas, Blocks.VOID, (j, i), False, False)
+                    knight = Player(Blocks.SPAWN_KNIGHT, canvas, (j, i), False, False)
+
+                elif cells[i][j] == Blocks.SPAWN_SKELETON.value:
+                    cells[i][j] = Tile(canvas, Blocks.VOID, (j, i), False, False)
+                    skeleton = Player(Blocks.SPAWN_SKELETON, canvas, (j, i), False, False)
 
         # Start movement loop
         finished = False
