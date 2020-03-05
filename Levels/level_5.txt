@@ -1,0 +1,21 @@
+XXXXXXXXXXXXXXXXXXXXX
+X     T             X
+XXXXXXXXXXXH        X
+X          H        X
+X          H  XXX XHX
+X     T    H      XHX
+XHXXXXXXXXXH      XHX
+XH        XH      XHX
+XH        XH   T  XHX
+XHXXXXXXXXXXXXXXXXXHX
+XH T               HX
+XXXXXXXXHXXXHXXXXXXXX
+X    H  H   H H     X
+XXXXXH XXXHXXXH XXXXX
+X    H    H   H     X
+X    HT   H   H     X
+XXXXXXXH HXH  HXXXXXX
+X      H HXH  H     X
+XHXXXXXXXXXXXXXXXXXHX
+XHK               SHX
+XXXXXXXXXXXXXXXXXXXXX
