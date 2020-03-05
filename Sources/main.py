@@ -25,9 +25,9 @@ cells = []
 keys: List[Any] = []
 chests = []
 
-window.title('LADDERGame')
+window.title('LadderGame')
 
-canvas = tkinter.Canvas(window, width=672, height=672)
+canvas = tkinter.Canvas(window, width=21*32, height=21*32)
 
 knight = None
 skeleton = None

@@ -1,5 +1,5 @@
-from Sources.blocks import Blocks
 from tkinter import PhotoImage
+from Sources.blocks import Blocks
 
 images = {
     Blocks.BRICK: PhotoImage(file='Ressources/BRICK.gif'),

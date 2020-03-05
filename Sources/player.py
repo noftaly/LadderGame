@@ -33,7 +33,7 @@ class Player(Tile):
         elif self.up_key in keys and not cells[y-1][x].isType(Blocks.BRICK) and cells[y][x].isType(Blocks.LADDER):
             self.y -= 1
 
-        elif self.down_key in keys and not cells[y+1][x].isType(Blocks.BRICK)                   \
+        elif self.down_key in keys and not cells[y+1][x].isType(Blocks.BRICK) \
                 and (cells[y][x].isType(Blocks.LADDER) or cells[y+1][x].isType(Blocks.LADDER)):
             self.y += 1
 
