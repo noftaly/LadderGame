@@ -58,7 +58,6 @@ def game_end(end_type):
     elif end_type == 2:
         canvas.create_rectangle(0, 0, 672, 672, fill='white')
         canvas.create_text(350, 285, text='Le jeu est fini :)', fill='#66BB66', font=('Arial', 70))
-        window.after(2000, lambda: exit(0))
 
 
 def movement():
