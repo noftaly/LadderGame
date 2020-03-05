@@ -54,10 +54,12 @@ class Tile:
     @x.setter
     def x(self, x):
         self._x = x
+        self._coords = (self._x, self._y)
 
     @y.setter
     def y(self, y):
         self._y = y
+        self._coords = (self._x, self._y)
 
     def canvas_x(self):
         return self._x * 32 + 16
@@ -65,5 +67,5 @@ class Tile:
     def canvas_y(self):
         return self._y * 32 + 16
 
-    def isType(self, block):
+    def is_type(self, block):
         return self._tile_type is block

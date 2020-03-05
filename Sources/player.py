@@ -24,17 +24,17 @@ class Player(Tile):
         x = self.x
         y = self.y
 
-        if self.right_key in keys and not cells[y][x+1].isType(Blocks.BRICK):
+        if self.right_key in keys and not cells[y][x+1].is_type(Blocks.BRICK):
             self.x += 1
 
-        elif self.left_key in keys and not cells[y][x-1].isType(Blocks.BRICK):
+        elif self.left_key in keys and not cells[y][x-1].is_type(Blocks.BRICK):
             self.x -= 1
 
-        elif self.up_key in keys and not cells[y-1][x].isType(Blocks.BRICK) and cells[y][x].isType(Blocks.LADDER):
+        elif self.up_key in keys and not cells[y-1][x].is_type(Blocks.BRICK) and cells[y][x].is_type(Blocks.LADDER):
             self.y -= 1
 
-        elif self.down_key in keys and not cells[y+1][x].isType(Blocks.BRICK) \
-                and (cells[y][x].isType(Blocks.LADDER) or cells[y+1][x].isType(Blocks.LADDER)):
+        elif self.down_key in keys and not cells[y+1][x].is_type(Blocks.BRICK) \
+                and (cells[y][x].is_type(Blocks.LADDER) or cells[y + 1][x].is_type(Blocks.LADDER)):
             self.y += 1
 
         elif self.up_key in keys and cells[y+1][x].jumpable:
