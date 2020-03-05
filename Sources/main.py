@@ -48,7 +48,7 @@ skeleton = None
 def game_end(end_type):
     if end_type == 0:
         canvas.create_rectangle(0, 0, 672, 672, fill='white')
-        canvas.create_text(350, 300, text='Le chavalier à gagné !', fill='#66BB66', font=('Arial', 70))
+        canvas.create_text(350, 300, text='Le chevalier à gagné !', fill='#66BB66', font=('Arial', 70))
         window.after(2000, create_level)
     elif end_type == 1:
         canvas.create_rectangle(0, 0, 672, 672, fill='white')
