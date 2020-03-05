@@ -57,10 +57,10 @@ def movement():
 
     # Check chests
     for chest in chests:
-        if (knight.x == chest.x and knight.y == chest.y) or (knight.x == chest.x and (knight.y+1) == chest.y):
+        if (knight.coords == chest.coords) or (knight.x == chest.x and (knight.y+1) == chest.y):
             canvas.delete(chest.id)
-
             chests.remove(chest)
+
             if len(chests) == 0:
                 game_end(0)
                 finished = True

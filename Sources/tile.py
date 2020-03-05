@@ -14,6 +14,7 @@ class Tile:
     def __init__(self, canvas, tile_type, coords, solid, jumpable):
         self._x = coords[0]
         self._y = coords[1]
+        self._coords = coords
         self._tile_type = tile_type
         self._solid = solid
         self._jumpable = jumpable
@@ -29,6 +30,10 @@ class Tile:
     @property
     def y(self):
         return self._y
+
+    @property
+    def coords(self):
+        return self._coords
 
     @property
     def tile_type(self):
