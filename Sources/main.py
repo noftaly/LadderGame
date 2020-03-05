@@ -37,12 +37,12 @@ skeleton = None
 def game_end(end_type):
     if end_type == 0:
         canvas.create_rectangle(0, 0, 672, 672, fill='white')
-        canvas.create_text(350, 300, text='Le chevalier à gagné !', fill='#66BB66', font=('Arial', 70))
+        canvas.create_text(350, 300, text='Le chevalier a gagné !', fill='#66BB66', font=('Arial', 70))
         window.after(2000, create_level)
     elif end_type == 1:
         canvas.create_rectangle(0, 0, 672, 672, fill='white')
         canvas.create_text(325, 300, text='Oh non :(', fill='#CC6666', font=('Arial', 70))
-        canvas.create_text(330, 500, text='Le squellette à gagné !', fill='#CC6666', font=('Arial', 40))
+        canvas.create_text(330, 500, text='Le squellette a gagné !', fill='#CC6666', font=('Arial', 40))
         window.after(2000, lambda: exit(0))
     elif end_type == 2:
         canvas.create_rectangle(0, 0, 672, 672, fill='white')
