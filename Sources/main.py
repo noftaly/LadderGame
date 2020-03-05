@@ -16,7 +16,7 @@ TODO:
     - [ ] Echelles cassées, murs traversables
 """
 
-# JUMP_HEIGHT = 3
+JUMP_HEIGHT = 3
 VOID = ' '
 BRICK = 'X'
 LADDER = 'H'
@@ -63,8 +63,8 @@ def game_end(end_type):
 def movement():
     global knight, skeleton, cells, finished
 
-    knight.move(cells, keys, BRICK, LADDER)
-    skeleton.move(cells, keys, BRICK, LADDER)
+    knight.move(cells, keys)
+    skeleton.move(cells, keys)
 
     # Check chests
     for chest in chests:
@@ -72,9 +72,7 @@ def movement():
             canvas.delete(chest.id)
 
             # Set the chest position to VOID
-            s = list(cells[knight.y])
-            s[knight.x] = VOID
-            cells[knight.y] = ''.join(s)
+            cells[knight.y][knight.x] = VOID
 
             chests.remove(chest)
             if len(chests) == 0:
@@ -123,8 +121,15 @@ def create_level():
     if exists:
         file = open('Levels/level_' + str(level) + '.txt')
         level += 1
-        for char in file:
-            cells.append(str(char))
+
+        for line in file:
+            cell_line = []
+            for char in line:
+                if char == '\n' or char == '\r' or char == '\r\n':
+                    continue
+                cell_line.append(str(char))
+            cells.append(cell_line)
+
         file.close()
 
         # Display images
