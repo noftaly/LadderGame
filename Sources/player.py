@@ -24,17 +24,19 @@ class Player (Tile):
             self.down_key = 's'
 
     def move(self, cells, keys):
-        if self.right_key in keys and cells[self.y][self.x + 1] != BRICK:
+        x = self.x
+        y = self.y
+        if self.right_key in keys and cells[y][x + 1] != BRICK:
             self.x += 1
-        elif self.left_key in keys and cells[self.y][self.x - 1] != BRICK:
+        elif self.left_key in keys and cells[y][x - 1] != BRICK:
             self.x -= 1
-        elif self.up_key in keys and cells[self.y - 1][self.x] != BRICK and cells[self.y][self.x] == LADDER:
+        elif self.up_key in keys and cells[y - 1][x] != BRICK and cells[y][x] == LADDER:
             self.y -= 1
-        elif self.down_key in keys and cells[self.y + 1][self.x] != BRICK and (cells[self.y][self.x] == LADDER or cells[self.y + 1][self.x] == LADDER):
+        elif self.down_key in keys and cells[y + 1][x] != BRICK and (cells[y][x] == LADDER or cells[y + 1][x] == LADDER):
             self.y += 1
 
-        elif self.up_key in keys and cells[self.y + 1][self.x] != VOID:
+        elif self.up_key in keys and (cells[y + 1][x] or cells[y + 1][x].jumpable):
             for i in range(JUMP_HEIGHT):
-                if cells[self.y - i][self.x] != VOID:
+                if cells[y - i][x].solid:
                     return
             self.y -= JUMP_HEIGHT

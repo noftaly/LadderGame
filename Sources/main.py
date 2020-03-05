@@ -9,7 +9,7 @@ from Sources.tile import Tile
 """
 TODO:
     - Idées :
-    - [ ] Jump
+    - [x] Jump
     - [ ] Téléporteur
     - [ ] Ecran de départ
     - [ ] Quand on arrive sur un bord de la map, on arrive de l'autre côté
@@ -136,20 +136,20 @@ def create_level():
         for i in range(21):
             for j in range(21):
                 if cells[i][j] == BRICK:
-                    Tile(canvas, brick_image, j, i)
+                    Tile(canvas, brick_image, (j, i), True, True)
 
                 elif cells[i][j] == LADDER:
-                    Tile(canvas, ladder_image, j, i)
+                    Tile(canvas, ladder_image, (j, i), False, True)
 
                 elif cells[i][j] == TREASURE:
-                    chest = Tile(canvas, treasure_image, j, i)
+                    chest = Tile(canvas, treasure_image, (j, i), False, True)
                     chests.append(chest)
 
                 elif cells[i][j] == SPAWN_KNIGHT:
-                    knight = Player('knight', canvas, knight_image, j, i)
+                    knight = Player('knight', canvas, knight_image, (j, i), False, False)
 
                 elif cells[i][j] == SPAWN_SKELETON:
-                    skeleton = Player('skeleton', canvas, skeleton_image, j, i)
+                    skeleton = Player('skeleton', canvas, skeleton_image, (j, i), False, False)
 
         # Start movement loop
         finished = False

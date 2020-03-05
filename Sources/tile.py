@@ -1,7 +1,9 @@
 class Tile:
-    def __init__(self, canvas, image, x, y):
-        self._x = x
-        self._y = y
+    def __init__(self, canvas, image, coords, solid, jumpable):
+        self._x = coords[0]
+        self._y = coords[1]
+        self._solid = solid
+        self._jumpable = jumpable
         self._id = canvas.create_image(self.canvas_x(), self.canvas_y(), image=image)
 
     @property
@@ -15,6 +17,14 @@ class Tile:
     @property
     def id(self):
         return self._id
+
+    @property
+    def solid(self):
+        return self._solid
+
+    @property
+    def jumpable(self):
+        return self._jumpable
 
     @x.setter
     def x(self, x):
