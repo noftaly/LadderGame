@@ -67,6 +67,7 @@ class Game:
         lines = file.readlines()
         file.close()
 
+        file_cells = []
         self.cells = []
         self.canvas.delete('all')
 
@@ -76,31 +77,32 @@ class Game:
                 if char == '\n' or char == '\r' or char == '\r\n':
                     continue
                 cell_line.append(str(char))
-            self.cells.append(cell_line)
+            file_cells.append(cell_line)
 
         # Display images
         for i in range(21):
+            self.cells.append([])
             for j in range(21):
-                if self.cells[i][j] is Blocks.BRICK.value:
-                    self.cells[i][j] = Tile(self.canvas, Blocks.BRICK, (j, i), True, True)
+                if file_cells[i][j] is Blocks.BRICK.value:
+                    self.cells[i].append(Tile(self.canvas, Blocks.BRICK, (j, i), True, True))
 
-                elif self.cells[i][j] is Blocks.LADDER.value:
-                    self.cells[i][j] = Tile(self.canvas, Blocks.LADDER, (j, i), False, True)
+                elif file_cells[i][j] is Blocks.LADDER.value:
+                    self.cells[i].append(Tile(self.canvas, Blocks.LADDER, (j, i), False, True))
 
-                elif self.cells[i][j] is Blocks.TREASURE.value:
-                    self.cells[i][j] = Tile(self.canvas, Blocks.TREASURE, (j, i), False, True)
+                elif file_cells[i][j] is Blocks.TREASURE.value:
+                    self.cells[i].append(Tile(self.canvas, Blocks.TREASURE, (j, i), False, True))
                     self.chests.append(self.cells[i][j])
 
-                elif self.cells[i][j] is Blocks.VOID.value:
-                    self.cells[i][j] = Tile(self.canvas, Blocks.VOID, (j, i), False, False)
-
-                elif self.cells[i][j] is Blocks.SPAWN_KNIGHT.value:
-                    self.cells[i][j] = Tile(self.canvas, Blocks.VOID, (j, i), False, False)
+                elif file_cells[i][j] is Blocks.SPAWN_KNIGHT.value:
+                    self.cells[i].append(Tile(self.canvas, Blocks.VOID, (j, i), False, False))
                     self.knight = Player(Blocks.SPAWN_KNIGHT, self.canvas, (j, i), False, False)
 
-                elif self.cells[i][j] is Blocks.SPAWN_SKELETON.value:
-                    self.cells[i][j] = Tile(self.canvas, Blocks.VOID, (j, i), False, False)
+                elif file_cells[i][j] is Blocks.SPAWN_SKELETON.value:
+                    self.cells[i].append(Tile(self.canvas, Blocks.VOID, (j, i), False, False))
                     self.skeleton = Player(Blocks.SPAWN_SKELETON, self.canvas, (j, i), False, False)
+
+                else:
+                    self.cells[i].append(Tile(self.canvas, Blocks.VOID, (j, i), False, False))
 
         self.paused = False
 
