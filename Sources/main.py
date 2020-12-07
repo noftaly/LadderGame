@@ -5,17 +5,6 @@ window = tkinter.Tk()
 
 from Sources.game import Game
 
-"""
-TODO:
-    - Ideas :
-    - [ ] Use game ticks instead of recursion (for game.movement and game.gravity)
-    - [x] Jump
-    - [ ] Teleport tiles
-    - [ ] Starting screen
-    - [ ] When on the edge of the map, make us appear on the other side
-    - [ ] Broken ladders
-"""
-
 level = 1
 finished = False
 cells = []

@@ -18,3 +18,12 @@ Second level:<br />
 Third level:<br />
 ![Third level](Static/level_3.png)
 <br />The third level is harder than it seems because you cannot jump!
+
+## To Do
+
+- [ ] Use game ticks instead of recursion (for `game.movement` and `game.gravity`)
+- [x] Jump
+- [ ] Teleport tiles
+- [ ] Starting screen
+- [ ] When on the x-edge of the map, make us appear on the other side
+- [ ] Broken ladders
