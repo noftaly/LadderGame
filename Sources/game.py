@@ -1,12 +1,15 @@
 import enum
 import os
+from typing import List, Optional, Final
+
+from tkinter import Canvas, Tk
 
 from Sources.player import Player
 from Sources.tile import Tile
 from Sources.blocks import Blocks
 
 
-keys = []
+keys: List[str] = []
 
 
 def key_pressed(evt):
@@ -28,17 +31,17 @@ class FinishCodes(enum.Enum):
 
 # Main
 class Game:
-    def __init__(self, window, canvas):
-        self.canvas = canvas
-        self.window = window
+    def __init__(self, window: Tk, canvas: Canvas):
+        self.canvas: Final[Canvas] = canvas
+        self.window: Final[Tk] = window
         self.finished = False
         self.paused = True
-        self.cells = []
-        self.chests = []
+        self.cells: List[List[Tile]] = []
+        self.chests: List[Tile] = []
         self.level = 0
 
-        self.knight = None
-        self.skeleton = None
+        self.knight: Optional[Player] = None
+        self.skeleton: Optional[Player] = None
 
         self.canvas.bind('<KeyPress>', key_pressed)
         self.canvas.bind('<KeyRelease>', key_released)
@@ -49,7 +52,7 @@ class Game:
         # Start ticking
         self.next_tick()
 
-    def next_level(self, finish_code=FinishCodes.NOT_FINISHED):
+    def next_level(self, finish_code: FinishCodes = FinishCodes.NOT_FINISHED) -> None:
         # We pause the ticks (movement and gravity loops)
         self.paused = True
 
@@ -60,19 +63,19 @@ class Game:
         else:
             self.game_end(finish_code)
 
-    def load_level(self):
+    def load_level(self) -> None:
         self.level += 1
 
         file = open(f'../Levels/level_{str(self.level)}.txt')
         lines = file.readlines()
         file.close()
 
-        file_cells = []
+        file_cells: List[List[str]] = []
         self.cells = []
         self.canvas.delete('all')
 
         for line in lines:
-            cell_line = []
+            cell_line: List[str] = []
             for char in line:
                 if char == '\n' or char == '\r' or char == '\r\n':
                     continue
@@ -106,7 +109,8 @@ class Game:
 
         self.paused = False
 
-    def next_tick(self):
+    def next_tick(self) -> None:
+        print(keys)
         if not self.paused:
             self.movement()
             self.gravity()
@@ -114,11 +118,11 @@ class Game:
         if not self.finished:
             self.window.after(115, self.next_tick)
 
-    def redraw(self):
+    def redraw(self) -> None:
         self.canvas.coords(self.knight.id, self.knight.canvas_x(), self.knight.canvas_y())
         self.canvas.coords(self.skeleton.id, self.skeleton.canvas_x(), self.skeleton.canvas_y())
 
-    def gravity(self):
+    def gravity(self) -> None:
         if not self.cells[self.knight.y+1][self.knight.x].solid \
                 and not self.cells[self.knight.y+1][self.knight.x].is_type(Blocks.LADDER):
             self.knight.y += 1
@@ -129,7 +133,7 @@ class Game:
 
         self.redraw()
 
-    def movement(self):
+    def movement(self) -> None:
         self.knight.move(self.cells, keys)
         self.skeleton.move(self.cells, keys)
 
@@ -150,7 +154,7 @@ class Game:
 
         self.redraw()
 
-    def game_end(self, finish_code):
+    def game_end(self, finish_code: FinishCodes) -> None:
         self.finished = True
         if finish_code is FinishCodes.KNIGHT_WINS:
             self.canvas.create_rectangle(0, 0, 672, 672, fill='white')
