@@ -1,3 +1,4 @@
+import enum
 import os
 
 from Sources.player import Player
@@ -18,15 +19,23 @@ def key_released(evt):
         keys.remove(evt.keysym)
 
 
+class FinishCodes(enum.Enum):
+    NOT_FINISHED = 0
+    KNIGHT_WINS = 1
+    SKELETON_WINS = 2
+    GAME_ENDED = 3
+
+
 # Main
 class Game:
     def __init__(self, window, canvas):
         self.canvas = canvas
         self.window = window
         self.finished = False
+        self.paused = True
         self.cells = []
         self.chests = []
-        self.level = 1
+        self.level = 0
 
         self.knight = None
         self.skeleton = None
@@ -35,27 +44,33 @@ class Game:
         self.canvas.bind('<KeyRelease>', key_released)
         self.canvas.delete('all')
 
-        self.next_level(2)
+        self.next_level()
 
-        # Start movement loop
-        self.gravity()
+        # Start ticking
+        self.next_tick()
 
-    def next_level(self, end_code):
-        exists = os.path.isfile(f'../Levels/level_{str(self.level)}.txt')
-        if exists:
+    def next_level(self, finish_code=FinishCodes.NOT_FINISHED):
+        # We pause the ticks (movement and gravity loops)
+        self.paused = True
+
+        exists = os.path.isfile(f'../Levels/level_{str(self.level + 1)}.txt')
+        # If there is a file and the skeleton did not won, then we load the next level
+        if exists and finish_code is not FinishCodes.SKELETON_WINS:
             self.load_level()
         else:
-            self.finished = True
-            self.game_end(end_code)
+            self.game_end(finish_code)
 
     def load_level(self):
-        file = open(f'../Levels/level_{str(self.level)}.txt')
         self.level += 1
+
+        file = open(f'../Levels/level_{str(self.level)}.txt')
+        lines = file.readlines()
+        file.close()
 
         self.cells = []
         self.canvas.delete('all')
 
-        for line in file:
+        for line in lines:
             cell_line = []
             for char in line:
                 if char == '\n' or char == '\r' or char == '\r\n':
@@ -63,38 +78,43 @@ class Game:
                 cell_line.append(str(char))
             self.cells.append(cell_line)
 
-        file.close()
-
         # Display images
         for i in range(21):
             for j in range(21):
-                if self.cells[i][j] == Blocks.BRICK.value:
+                if self.cells[i][j] is Blocks.BRICK.value:
                     self.cells[i][j] = Tile(self.canvas, Blocks.BRICK, (j, i), True, True)
 
-                elif self.cells[i][j] == Blocks.LADDER.value:
+                elif self.cells[i][j] is Blocks.LADDER.value:
                     self.cells[i][j] = Tile(self.canvas, Blocks.LADDER, (j, i), False, True)
 
-                elif self.cells[i][j] == Blocks.TREASURE.value:
+                elif self.cells[i][j] is Blocks.TREASURE.value:
                     self.cells[i][j] = Tile(self.canvas, Blocks.TREASURE, (j, i), False, True)
                     self.chests.append(self.cells[i][j])
 
-                elif self.cells[i][j] == Blocks.VOID.value:
+                elif self.cells[i][j] is Blocks.VOID.value:
                     self.cells[i][j] = Tile(self.canvas, Blocks.VOID, (j, i), False, False)
 
-                elif self.cells[i][j] == Blocks.SPAWN_KNIGHT.value:
+                elif self.cells[i][j] is Blocks.SPAWN_KNIGHT.value:
                     self.cells[i][j] = Tile(self.canvas, Blocks.VOID, (j, i), False, False)
                     self.knight = Player(Blocks.SPAWN_KNIGHT, self.canvas, (j, i), False, False)
 
-                elif self.cells[i][j] == Blocks.SPAWN_SKELETON.value:
+                elif self.cells[i][j] is Blocks.SPAWN_SKELETON.value:
                     self.cells[i][j] = Tile(self.canvas, Blocks.VOID, (j, i), False, False)
                     self.skeleton = Player(Blocks.SPAWN_SKELETON, self.canvas, (j, i), False, False)
 
-        self.movement()
+        self.paused = False
 
-    def redraw(self, callback):
+    def next_tick(self):
+        if not self.paused:
+            self.movement()
+            self.gravity()
+
+        if not self.finished:
+            self.window.after(115, self.next_tick)
+
+    def redraw(self):
         self.canvas.coords(self.knight.id, self.knight.canvas_x(), self.knight.canvas_y())
         self.canvas.coords(self.skeleton.id, self.skeleton.canvas_x(), self.skeleton.canvas_y())
-        self.window.after(115, callback)
 
     def gravity(self):
         if not self.cells[self.knight.y+1][self.knight.x].solid \
@@ -105,8 +125,7 @@ class Game:
                 and not self.cells[self.skeleton.y+1][self.skeleton.x].is_type(Blocks.LADDER):
             self.skeleton.y += 1
 
-        if not self.finished:
-            self.redraw(self.gravity)
+        self.redraw()
 
     def movement(self):
         self.knight.move(self.cells, keys)
@@ -119,30 +138,30 @@ class Game:
                 self.chests.remove(chest)
 
                 if len(self.chests) == 0:
-                    self.next_level(0)
+                    self.next_level(FinishCodes.KNIGHT_WINS)
                     return
 
         # Check collisions between skeleton and knight
         if self.knight.x == self.skeleton.x and self.knight.y == self.skeleton.y and not self.finished:
-            self.next_level(1)
+            self.next_level(FinishCodes.SKELETON_WINS)
             return
 
-        self.redraw(self.movement)
+        self.redraw()
 
-    # End the game with the provided exit code
-    # 0: Knight wins
-    # 1: Skeleton wins
-    # 2: Game is finished
-    def game_end(self, end_type):
-        if end_type == 0:
+    def game_end(self, finish_code):
+        self.finished = True
+        if finish_code is FinishCodes.KNIGHT_WINS:
             self.canvas.create_rectangle(0, 0, 672, 672, fill='white')
             self.canvas.create_text(350, 300, text='Le chevalier a gagné !', fill='#66BB66', font=('Arial', 70))
             self.window.after(2000, lambda: exit(0))
-        elif end_type == 1:
+        elif finish_code is FinishCodes.SKELETON_WINS:
             self.canvas.create_rectangle(0, 0, 672, 672, fill='white')
             self.canvas.create_text(325, 300, text='Oh non :(', fill='#CC6666', font=('Arial', 70))
             self.canvas.create_text(330, 500, text='Le squellette a gagné !', fill='#CC6666', font=('Arial', 40))
             self.window.after(2000, lambda: exit(0))
-        elif end_type == 2:
+        elif finish_code is FinishCodes.GAME_ENDED:
             self.canvas.create_rectangle(0, 0, 672, 672, fill='white')
             self.canvas.create_text(350, 285, text='Le jeu est fini :)', fill='#66BB66', font=('Arial', 70))
+        else:
+            self.canvas.create_rectangle(0, 0, 672, 672, fill='white')
+            self.canvas.create_text(353, 285, text='Argh, impossible :(', fill='#66BB66', font=('Arial', 65))
