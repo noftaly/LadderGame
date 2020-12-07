@@ -1,12 +1,11 @@
 import os
-from typing import List, Any
 
 from Sources.player import Player
 from Sources.tile import Tile
 from Sources.blocks import Blocks
 
 
-keys: List[Any] = []
+keys = []
 
 
 def key_pressed(evt):
@@ -29,55 +28,73 @@ class Game:
         self.chests = []
         self.level = 1
 
+        self.knight = None
+        self.skeleton = None
+
         self.canvas.bind('<KeyPress>', key_pressed)
         self.canvas.bind('<KeyRelease>', key_released)
         self.canvas.delete('all')
 
+        self.next_level(2)
+
+        # Start movement loop
+        self.gravity()
+
+    def next_level(self, end_code):
         exists = os.path.isfile(f'../Levels/level_{str(self.level)}.txt')
         if exists:
-            file = open('../Levels/level_' + str(self.level) + '.txt')
-            self.level += 1
-
-            for line in file:
-                cell_line = []
-                for char in line:
-                    if char == '\n' or char == '\r' or char == '\r\n':
-                        continue
-                    cell_line.append(str(char))
-                self.cells.append(cell_line)
-
-            file.close()
-
-            # Display images
-            for i in range(21):
-                for j in range(21):
-                    if self.cells[i][j] == Blocks.BRICK.value:
-                        self.cells[i][j] = Tile(self.canvas, Blocks.BRICK, (j, i), True, True)
-
-                    elif self.cells[i][j] == Blocks.LADDER.value:
-                        self.cells[i][j] = Tile(self.canvas, Blocks.LADDER, (j, i), False, True)
-
-                    elif self.cells[i][j] == Blocks.TREASURE.value:
-                        self.cells[i][j] = Tile(self.canvas, Blocks.TREASURE, (j, i), False, True)
-                        self.chests.append(self.cells[i][j])
-
-                    elif self.cells[i][j] == Blocks.VOID.value:
-                        self.cells[i][j] = Tile(self.canvas, Blocks.VOID, (j, i), False, False)
-
-                    elif self.cells[i][j] == Blocks.SPAWN_KNIGHT.value:
-                        self.cells[i][j] = Tile(self.canvas, Blocks.VOID, (j, i), False, False)
-                        self.knight = Player(Blocks.SPAWN_KNIGHT, self.canvas, (j, i), False, False)
-
-                    elif self.cells[i][j] == Blocks.SPAWN_SKELETON.value:
-                        self.cells[i][j] = Tile(self.canvas, Blocks.VOID, (j, i), False, False)
-                        self.skeleton = Player(Blocks.SPAWN_SKELETON, self.canvas, (j, i), False, False)
-
-            # Start movement loop
-            self.movement()
-            self.gravity()
+            self.load_level()
         else:
-            self.game_end(2)
             self.finished = True
+            self.game_end(end_code)
+
+    def load_level(self):
+        file = open(f'../Levels/level_{str(self.level)}.txt')
+        self.level += 1
+
+        self.cells = []
+        self.canvas.delete('all')
+
+        for line in file:
+            cell_line = []
+            for char in line:
+                if char == '\n' or char == '\r' or char == '\r\n':
+                    continue
+                cell_line.append(str(char))
+            self.cells.append(cell_line)
+
+        file.close()
+
+        # Display images
+        for i in range(21):
+            for j in range(21):
+                if self.cells[i][j] == Blocks.BRICK.value:
+                    self.cells[i][j] = Tile(self.canvas, Blocks.BRICK, (j, i), True, True)
+
+                elif self.cells[i][j] == Blocks.LADDER.value:
+                    self.cells[i][j] = Tile(self.canvas, Blocks.LADDER, (j, i), False, True)
+
+                elif self.cells[i][j] == Blocks.TREASURE.value:
+                    self.cells[i][j] = Tile(self.canvas, Blocks.TREASURE, (j, i), False, True)
+                    self.chests.append(self.cells[i][j])
+
+                elif self.cells[i][j] == Blocks.VOID.value:
+                    self.cells[i][j] = Tile(self.canvas, Blocks.VOID, (j, i), False, False)
+
+                elif self.cells[i][j] == Blocks.SPAWN_KNIGHT.value:
+                    self.cells[i][j] = Tile(self.canvas, Blocks.VOID, (j, i), False, False)
+                    self.knight = Player(Blocks.SPAWN_KNIGHT, self.canvas, (j, i), False, False)
+
+                elif self.cells[i][j] == Blocks.SPAWN_SKELETON.value:
+                    self.cells[i][j] = Tile(self.canvas, Blocks.VOID, (j, i), False, False)
+                    self.skeleton = Player(Blocks.SPAWN_SKELETON, self.canvas, (j, i), False, False)
+
+        self.movement()
+
+    def redraw(self, callback):
+        self.canvas.coords(self.knight.id, self.knight.canvas_x(), self.knight.canvas_y())
+        self.canvas.coords(self.skeleton.id, self.skeleton.canvas_x(), self.skeleton.canvas_y())
+        self.window.after(115, callback)
 
     def gravity(self):
         if not self.cells[self.knight.y+1][self.knight.x].solid \
@@ -88,12 +105,8 @@ class Game:
                 and not self.cells[self.skeleton.y+1][self.skeleton.x].is_type(Blocks.LADDER):
             self.skeleton.y += 1
 
-        if self.finished:
-            return
-
-        self.canvas.coords(self.knight.id, self.knight.canvas_x(), self.knight.canvas_y())
-        self.canvas.coords(self.skeleton.id, self.skeleton.canvas_x(), self.skeleton.canvas_y())
-        self.window.after(115, self.gravity)
+        if not self.finished:
+            self.redraw(self.gravity)
 
     def movement(self):
         self.knight.move(self.cells, keys)
@@ -106,21 +119,15 @@ class Game:
                 self.chests.remove(chest)
 
                 if len(self.chests) == 0:
-                    self.game_end(0)
-                    finished = True
+                    self.next_level(0)
+                    return
 
         # Check collisions between skeleton and knight
         if self.knight.x == self.skeleton.x and self.knight.y == self.skeleton.y and not self.finished:
-            self.game_end(1)
-            finished = True
-
-        if self.finished:
+            self.next_level(1)
             return
 
-        self.canvas.coords(self.knight.id, self.knight.canvas_x(), self.knight.canvas_y())
-        self.canvas.coords(self.skeleton.id, self.skeleton.canvas_x(), self.skeleton.canvas_y())
-
-        self.window.after(115, self.movement)
+        self.redraw(self.movement)
 
     # End the game with the provided exit code
     # 0: Knight wins
