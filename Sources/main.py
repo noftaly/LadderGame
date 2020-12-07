@@ -8,6 +8,7 @@ from Sources.game import Game
 """
 TODO:
     - Ideas :
+    - [ ] Use game ticks instead of recursion (for game.movement and game.gravity)
     - [x] Jump
     - [ ] Teleport tiles
     - [ ] Starting screen
