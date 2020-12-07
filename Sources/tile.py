@@ -2,11 +2,11 @@ from tkinter import PhotoImage
 from Sources.blocks import Blocks
 
 images = {
-    Blocks.BRICK: PhotoImage(file='Ressources/BRICK.gif'),
-    Blocks.LADDER: PhotoImage(file='Ressources/LADDER.gif'),
-    Blocks.TREASURE: PhotoImage(file='Ressources/TREASURE.gif'),
-    Blocks.SPAWN_KNIGHT: PhotoImage(file='Ressources/Knight.gif'),
-    Blocks.SPAWN_SKELETON: PhotoImage(file='Ressources/Skeleton.gif'),
+    Blocks.BRICK: PhotoImage(file='../Resources/Brick.gif'),
+    Blocks.LADDER: PhotoImage(file='../Resources/Ladder.gif'),
+    Blocks.TREASURE: PhotoImage(file='../Resources/Treasure.gif'),
+    Blocks.SPAWN_KNIGHT: PhotoImage(file='../Resources/Knight.gif'),
+    Blocks.SPAWN_SKELETON: PhotoImage(file='../Resources/Skeleton.gif'),
 }
 
 
